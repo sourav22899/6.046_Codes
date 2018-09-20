@@ -26,17 +26,17 @@ ll next_pow_of_two(ll x)
     return (1<<(i-1) == n)? n: 1<<i;
 }
 ///////// Recursive FFT //////////
-vector<cd>fft(vector<cd>& a)
+vector<cd> fft(vector<cd>& a)
 {
     ll n = a.size();
     if (n == 1) return vector<cd>(1,a[0]);
-    vector<cd>w;
+    vector<cd>w(n);
     rep(i,0,n)
     {
         double alpha = 2*M_PI*i/n;
         w[i] = cd(cos(alpha),sin(alpha));
     }
-    vector<cd>A0(n/2),A1(n/2);
+    vector<cd> A0(n/2), A1(n/2);
     rep(i,0,n/2)
     {
         A0[i] = a[i*2];
@@ -44,7 +44,6 @@ vector<cd>fft(vector<cd>& a)
     }
     vector<cd> y0 = fft(A0);
     vector<cd> y1 = fft(A1);
-
     vector<cd>y(n);
     rep(i,0,n/2)
     {
@@ -53,13 +52,27 @@ vector<cd>fft(vector<cd>& a)
     }
     return y;
 }
-///////// Recursive FFT //////////
+
+///////// Recursive IFFT //////////
+vector<cd> ifft(vector<cd>& a)
+{
+    ll n = a.size();
+    vector<cd>x(n),y(n);
+    rep(i,0,n) x[i] = conj(a[i]);
+    y = fft(x);
+    rep(i,0,n) y[i] = conj(y[i]);
+    //y /= y.size();
+    rep(i,0,y.size()) y[i] /= n;
+    return y;
+}
+
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);cout.tie(NULL);
-    ll m,n;cin>>m>>n;
-    vector<cd>a,b;
+    ll m,n;cin>>n>>m;
+    vector<cd>a;
+    vector<cd>b;
     cd x;   
     rep(i,0,n)
     {
@@ -70,9 +83,26 @@ int main()
         cin>>x;b.pb(x);
     }
     //////// Making the degree of the product of polynomials the nearest power of two /////////
-    n = next_pow_of_two(m+n);
-    rep(i,0,n-a.size()) a.pb(0);
-    rep(i,0,n-b.size()) b.pb(0);
-    //////// Making the degree of the product of polynomials the nearest power of two /////////
+    ll k = next_pow_of_two(m+n);
+    rep(i,0,k-n) a.pb(0);
+    rep(i,0,k-m) b.pb(0);
+
+    vector<cd>A = fft(a);
+    vector<cd>B = fft(b);
+    ////// Printing fft(a) //////
+    for(auto x:A) cout<<x<<'\n';
+    cout<<'\n';
+
+    ////// Printing fft(b) //////
+    for(auto x:B) cout<<x<<'\n';
+    cout<<'\n';
+
+    vector<cd>c(k);
+    rep(i,0,k) c[i] = A[i]*B[i];
+
+    ////// If want to print the entire iFFT , then remove ".real()" in Line 105. ////////
+    vector<cd>prod = ifft(c);
+    rep(i,0,k) cout<<prod[i].real()<<' ';
+    cout<<'\n';
     return 0;
 }
